@@ -1,0 +1,24 @@
+####
+
+#1. Extraer tweets y seguidores del sitio web de Twitter con R
+#Y el paquete doble
+#2. Con el paquete tm, limpie el texto eliminando las puntuaciones,
+#Números, hipervínculos y palabras de detención, seguidos de
+#Y la terminación del tallo
+#3. Construir una matriz de término-documento
+#4. Analizar temas con el paquete topicmodels
+#5. Analiza el sentimiento con el paquete sentiment140
+#6. Analizar las relaciones siguientes / seguidas y retweeting con El paquete igraph
+###
+
+### entrar a twitter
+library(twitteR)
+api_key <- "xxxx"
+api_secret <- "xxx"
+access_token <- "74682827-xxx"
+access_token_secret <- "xxx"
+setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
+#####
+
+
+
