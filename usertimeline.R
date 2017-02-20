@@ -11,7 +11,7 @@ setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
 ##### Limpieza de Texto
 
 ####### 
-tweets <- userTimeline("EPN", n = 3000)
+tweets <- userTimeline("marianaSalas", n = 3000)
 tweets.df <- twListToDF(tweets)
 library(tm)
 
@@ -57,8 +57,8 @@ library(wordcloud)
 m <- as.matrix(tdm)
 # calculate the frequency of words and sort it by frequency
 word.freq <- sort(rowSums(m), decreasing = T)
-wordcloud(words = names(word.freq), freq = word.freq, min.freq = 3,
-          random.order = F)
+wordcloud(words = names(word.freq), freq = word.freq, min.freq = 1, max.words=200, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
 #######Analisis Cluster
 tdm2 <- removeSparseTerms(tdm, sparse = 0.95)
 m2 <- as.matrix(tdm2)
@@ -94,3 +94,11 @@ for (i in 1:k){
   s <- sort(kmeansResult$centers[i, ],decreasing = T)
   cat(names(s)[1:5], "\n")
 }
+          
+ (n.tweet <- length(tweets))
+ ##TopicModels
+dtm <- as.DocumentTermMatrix(tdm)
+library(topicmodels)
+lda <- LDA(dtm, k = 8)
+term <- terms(lda, 7) # first 7 terms of every topic
+(term <- apply(term, MARGIN = 2, paste, collapse = ", "))
