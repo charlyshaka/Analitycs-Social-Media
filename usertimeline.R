@@ -11,7 +11,7 @@ setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
 ##### Limpieza de Texto
 
 ####### 
-tweets <- userTimeline("marianaSalas", n = 4000)
+tweets <- userTimeline("lopezobrador_", n = 4000)
 tweets.df <- twListToDF(tweets)
 library(tm)
 
@@ -48,13 +48,21 @@ tdm
 (freq.terms <- findFreqTerms(tdm, lowfreq=3))
 
 term.freq <- rowSums(as.matrix(tdm))
-term.freq <- subset(term.freq, term.freq >=70)
+term.freq <- subset(term.freq, term.freq >=100)
 df <- data.frame(term = names(term.freq), freq = term.freq)
-library(ggplot2)
 
-ggplot(df, aes(x=term, y=freq)) + geom_bar(stat = "identity") + xlab("Terms") + ylab("Count") +coord_flip()
 
-##### Lluvia de palabras
+
+#########Grafico de Frecuencias###############
+library(ggplot2)   
+   
+p<- ggplot(df, aes(x=term, y=freq)) + geom_bar(stat = "identity") + xlab("Palabra") + ylab("Frecuencia") +coord_flip()
+p <- p + theme(axis.text.x=element_text(angle=45, hjust=1))   
+p
+############################################
+
+
+########### Lluvia de palabras
 library(wordcloud)
 set.seed(1234)
 
@@ -65,6 +73,17 @@ word.freq <- sort(rowSums(m), decreasing = T)
 wordcloud(words = names(word.freq), freq = word.freq, min.freq = 1, max.words=200, random.order=FALSE, rot.per=0.35, 
           colors=brewer.pal(8, "Dark2"))
 
+#########################################################
+
+
+
+
+
+
+
+
+
+############################################################################
 # remove sparse terms
 tdm2 <- removeSparseTerms(tdm, sparse = 0.95)
 m2 <- as.matrix(tdm2)
@@ -73,13 +92,28 @@ distMatrix <- dist(scale(m2))
 fit <- hclust(distMatrix, method = "ward.D")
 
 plot(fit)
-rect.hclust(fit, k = 6) # cut tree into 6 clusters 
+rect.hclust(fit, k = 6,border="red") # cut tree into 6 clusters 
 
 m3 <- t(m2) # transpose the matrix to cluster documents (tweets)
 set.seed(122) # set a fixed random seed
-k <- 6 # number of clusters
+k <- 10 # number of clusters
 kmeansResult <- kmeans(m3, k)
 round(kmeansResult$centers, digits = 3) # cluster centers
+
+##############################
+library(fpc)
+library(cluster)
+d <- dist(t(tdm2), method="euclidian")   
+kfit <- kmeans(d, 2)   
+clusplot(as.matrix(tdm2), kfit$cluster, color=T, shade=T, labels=2, lines=0)   
+###############################################
+
+
+
+###########################################
+
+
+
 library(fpc)
 # partitioning around medoids with estimation of number of clusters
 pamResult <- pamk(m3, metric="manhattan")
@@ -103,7 +137,14 @@ for (i in 1:k){
   
 (n.tweet <- length(tweets))
 
-##TopicModels
+
+
+
+
+
+################################TopicModels
+
+
 dtm <- as.DocumentTermMatrix(tdm)
 library(topicmodels)
 lda <- LDA(dtm, k = 5)
@@ -119,11 +160,14 @@ topic <- topics(lda, 1)
 topics <- data.frame(date=as.IDate(tweets.df$created), topic)
 qplot(date, ..count.., data=topics, geom="density",
       fill=term[topic], position="stack")
+#############################################################
 
-### Analisis de Sentimientos
+
+
+######### Analisis de Sentimientos
 require(devtools)
 install_github("sentiment140", "okugami79")
-# sentiment analysis
+######### sentiment analysis
 library(sentiment)
 sentiments <- sentiment(tweets.df$text)
 table(sentiments$polarity)
@@ -135,4 +179,4 @@ sentiments$score[sentiments$polarity == "negative"] <- -1
 sentiments$date <- as.IDate(tweets.df$created)
 result <- aggregate(score ~ date, data = sentiments, sum)
 plot(result, type = "l")
-##
+############################
