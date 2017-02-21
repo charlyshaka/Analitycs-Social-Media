@@ -15,14 +15,17 @@ tweets <- userTimeline("marianaSalas", n = 4000)
 tweets.df <- twListToDF(tweets)
 library(tm)
 
+### Convierte un vector de Caracteres
 myCorpus <- Corpus(VectorSource(tweets.df$text))
-
+### convierte a minisculas
 myCorpus <- tm_map(myCorpus, content_transformer(tolower))
-
+###
 removeURL <- function(x) gsub("http[^[:space:]]*", "", x)
+
 myCorpus <- tm_map(myCorpus, content_transformer(removeURL))
-# remove anything other than English letters or space
+
 removeNumPunct <- function(x) gsub("[^[:alpha:][:space:]]*", "", x)
+
 myCorpus <- tm_map(myCorpus, content_transformer(removeNumPunct))
 # remove stopwords
 
@@ -45,7 +48,7 @@ tdm
 (freq.terms <- findFreqTerms(tdm, lowfreq=3))
 
 term.freq <- rowSums(as.matrix(tdm))
-term.freq <- subset(term.freq, term.freq >=100)
+term.freq <- subset(term.freq, term.freq >=70)
 df <- data.frame(term = names(term.freq), freq = term.freq)
 library(ggplot2)
 
@@ -100,11 +103,11 @@ for (i in 1:k){
   
 (n.tweet <- length(tweets))
 
-##TopicModels, modelos de topicos para descubrir
+##TopicModels
 dtm <- as.DocumentTermMatrix(tdm)
 library(topicmodels)
-lda <- LDA(dtm, k = 8)
-term <- terms(lda, 7) # first 7 terms of every topic
+lda <- LDA(dtm, k = 5)
+term <- terms(lda, 5) # first 7 terms of every topic
 (term <- apply(term, MARGIN = 2, paste, collapse = ", "))
 library("lda")
 
@@ -116,3 +119,20 @@ topic <- topics(lda, 1)
 topics <- data.frame(date=as.IDate(tweets.df$created), topic)
 qplot(date, ..count.., data=topics, geom="density",
       fill=term[topic], position="stack")
+
+### Analisis de Sentimientos
+require(devtools)
+install_github("sentiment140", "okugami79")
+# sentiment analysis
+library(sentiment)
+sentiments <- sentiment(tweets.df$text)
+table(sentiments$polarity)
+##
+t
+sentiments$score <- 0
+sentiments$score[sentiments$polarity == "positive"] <- 1
+sentiments$score[sentiments$polarity == "negative"] <- -1
+sentiments$date <- as.IDate(tweets.df$created)
+result <- aggregate(score ~ date, data = sentiments, sum)
+plot(result, type = "l")
+##
